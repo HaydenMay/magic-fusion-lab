@@ -14,8 +14,9 @@ This record distinguishes real rendering in a desktop browser, desktop mobile em
 | Touch layout | PASS | Desktop Chrome emulation at 390×844, 844×390 and 320×568; Cast stays in bounds; no horizontal overflow |
 | Touch orbit then first-tap reset | PASS | Regression reproduced and fixed; focused check plus full suite |
 | Visual inspection | PASS | Author inspected real WebGL PNGs for Fire, Lightning, Fusion and phone-sized views; revised brightness, framing and color separation |
-| Production preview | PENDING | Final check under the repository base path |
-| Unsupported WebGL / context-loss recovery | PENDING | Simulation checks in final browser suite |
+| Production preview | PASS | Full browser suite at `http://127.0.0.1:4173/magic-fusion-lab/`; production JS and CSS both HTTP 200 |
+| Touch pinch / first-tap cast after pinch | PASS | Native touch event simulation; camera distance changes, page does not scroll, next tap casts |
+| Unsupported WebGL / context-loss recovery | PASS | Simulated missing WebGL 2 and `WEBGL_lose_context`; recovery messages appeared |
 | Public HTTPS deployment / deployed interactions | PENDING | Must be verified after GitHub Pages returns its URL |
 | Actual iPhone / Safari | NOT TESTED | No physical iPhone or Safari session was available |
 
@@ -23,7 +24,7 @@ This record distinguishes real rendering in a desktop browser, desktop mobile em
 
 Windows, headless Google Chrome 155.0.8059.85, NVIDIA GeForce RTX 4060 through ANGLE / Direct3D 11. The displayed recent FPS estimate held near 144 in the observed desktop High-quality frames at 1440×1000. Recorded spell samples contained 331–458 particles and 77–86 total draw calls including postprocessing. These are observations from this PC and do not predict iPhone performance.
 
-The idle environment uses 49 geometries before particles are first warmed; after all spells have run, the 2 intentionally retained particle batches bring that to 51. Recasts return to 0 live systems and 0 particles. Shared particle resources remain allocated for reuse.
+The idle environment uses 49 geometries before particles are first warmed; after all spells have run, the 2 intentionally retained particle batches bring that to 51. Recasts return to 0 live systems and 0 particles. The production replay test returned to 51 geometries and 17 textures, matching its warmed baseline exactly. Shared particle resources remain allocated for reuse.
 
 ## Limitations and mitigation
 
