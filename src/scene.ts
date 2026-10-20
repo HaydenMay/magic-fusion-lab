@@ -66,9 +66,6 @@ export function createWorld(host: HTMLElement, initialQuality: Quality) {
     for (const r of [.63,.82]) { const ring = new THREE.Mesh(new THREE.TorusGeometry(r,.012,4,64), new THREE.MeshBasicMaterial({ color: index ? 0x75a6ac : 0xc49d68, transparent:true,opacity:.55 })); ring.rotation.x = Math.PI/2; ring.position.y = .07; base.add(ring); }
     const gem = new THREE.Mesh(new THREE.OctahedronGeometry(.2), new THREE.MeshStandardMaterial({color:0x8b9ca0,metalness:.8,roughness:.2,emissive:index?0x3e626c:0x684c2e,emissiveIntensity:.6})); gem.position.y = .32; gem.scale.y = 1.6; base.add(gem);
   }
-  // Distant broken columns frame the chamber without hiding the spell lane.
-  const far = new THREE.InstancedMesh(new THREE.CylinderGeometry(.5,.7,6,5),stone,15);
-  for (let i = 0; i < 15; i++) { const a = i/15*Math.PI*2; d.position.set(Math.cos(a)*16,-1+(i%4)*.6,Math.sin(a)*16); d.rotation.set(.1*Math.sin(i),i,.08*Math.cos(i)); d.scale.set(1,.65+(i%3)*.25,1); d.updateMatrix(); far.setMatrixAt(i,d.matrix); } scene.add(far);
   const dustCount = 160; const dustPositions = new Float32Array(dustCount*3);
   for(let i=0;i<dustCount;i++){dustPositions[i*3]=(Math.random()-.5)*27;dustPositions[i*3+1]=.5+Math.random()*9;dustPositions[i*3+2]=(Math.random()-.5)*24;}
   const dustGeo = new THREE.BufferGeometry(); dustGeo.setAttribute('position',new THREE.BufferAttribute(dustPositions,3));
@@ -79,20 +76,28 @@ export function createWorld(host: HTMLElement, initialQuality: Quality) {
   let quality = initialQuality;
   let width = 0, height = 0;
   const isPortrait = () => host.clientWidth/host.clientHeight < .85;
-  const home = () => { controls.target.set(0,isPortrait() ? -1.5 : .4,0); camera.position.set(isPortrait()?10.8:9.5,isPortrait()?13.5:10.3,isPortrait()?20:15); controls.update(); controls.saveState(); };
+  const home = () => {
+    const damping=controls.enableDamping;controls.enableDamping=false;controls.update();
+    const portrait=isPortrait(),compact=portrait&&host.clientHeight<700,landscape=host.clientHeight<500&&!portrait;
+    controls.target.set(0,portrait?(compact?-2.9:-1.5):landscape?-1.4:.4,0);
+    camera.position.set(portrait?10.8:9.5,portrait?(compact?12.3:13.5):10.3,portrait?20:15);
+    controls.update();controls.enableDamping=damping;controls.saveState();
+  };
   const resize = () => {
     const newWidth=host.clientWidth,newHeight=host.clientHeight;
     const changedOrientation = (width/height < .85) !== (newWidth/newHeight < .85);
     width=newWidth;height=newHeight;
     camera.aspect=width/height;camera.updateProjectionMatrix();
     renderer.setPixelRatio(Math.min(devicePixelRatio,quality==='mobile'?1.25:1.75)); renderer.setSize(width,height,false);
-    composer.setPixelRatio(renderer.getPixelRatio()*(quality==='mobile'?.75:1)); composer.setSize(width,height);
+    composer.setPixelRatio(renderer.getPixelRatio()); composer.setSize(width,height);
+    if(quality==='mobile')bloom.setSize(Math.round(width*.65),Math.round(height*.65));
     if (changedOrientation) home();
   };
   home(); resize();
   const setQuality = (value: Quality) => { quality=value;bloom.strength=value==='high'?.95:.75;resize(); };
   const project = (point: THREE.Vector3) => { const p=point.clone().project(camera);return {x:(p.x*.5+.5)*width,y:(-p.y*.5+.5)*height,visible:p.z<1}; };
-  const render = (time:number) => { controls.update(); dust.rotation.y=time*.008; monoliths.forEach((g,i)=>{g.children[2].position.y=2.18+Math.sin(time*.7+i)*.09;g.children[2].rotation.y=time*.25;});composer.render(); };
+  renderer.info.autoReset=false;
+  const render = (time:number) => { controls.update(); dust.rotation.y=time*.008; monoliths.forEach((g,i)=>{g.children[2].position.y=2.18+Math.sin(time*.7+i)*.09;g.children[2].rotation.y=time*.25;});renderer.info.reset();composer.render(); };
   const dispose = () => {
     controls.dispose(); bloom.dispose(); composer.dispose();
     const geometries=new Set<THREE.BufferGeometry>(), materials=new Set<THREE.Material>(), textures=new Set<THREE.Texture>();

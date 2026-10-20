@@ -1,0 +1,101 @@
+import { chromium } from 'playwright';
+import assert from 'node:assert/strict';
+import { mkdir, writeFile } from 'node:fs/promises';
+
+const base = process.env.LAB_URL || 'http://127.0.0.1:5173/magic-fusion-lab/';
+await mkdir('artifacts', {recursive:true});
+const browser = await chromium.launch({channel:'chrome',headless:true,args:['--enable-webgl','--ignore-gpu-blocklist']});
+const page = await browser.newPage({viewport:{width:1440,height:1000},deviceScaleFactor:1});
+const errors=[];
+page.on('pageerror',e=>errors.push(e.message));
+page.on('console',m=>{if(m.type()==='error' && !m.text().includes('fonts.googleapis')) errors.push(m.text());});
+const responses=[];
+page.on('response',r=>{if(r.url().startsWith(base) && /\.(js|css)(\?|$)/.test(r.url())) responses.push({url:r.url(),status:r.status()});});
+try {
+  const response = await page.goto(base);
+  assert.equal(response?.status(),200);
+  await page.waitForFunction(()=>window.__lab?.stats().ready,{timeout:30000});
+  await page.waitForTimeout(1400);
+  assert.equal(await page.locator('#error').isVisible(),false);
+  const gpu=await page.evaluate(()=>window.__lab.stats());
+  const samples=[];
+  for(const spell of ['fire','lightning','fusion']){
+    await page.locator(`[data-spell="${spell}"]`).click();
+    await page.locator('#cast').click();
+    const frames={fire:{flight:1.5,impact:2.6},lightning:{flight:.92,impact:1.32},fusion:{flight:1.95,impact:3.2}}[spell];
+    await page.waitForFunction(t=>window.__lab.stats().time>=t,frames.flight);
+    assert.ok((await page.evaluate(()=>window.__lab.stats())).particles>0,'Three.quarks particles are actually alive');
+    await page.screenshot({path:`artifacts/${spell}-flight.png`});
+    await page.waitForFunction(t=>window.__lab.stats().time>=t,frames.impact);
+    await page.screenshot({path:`artifacts/${spell}-impact.png`});
+    samples.push(await page.evaluate(()=>window.__lab.stats()));
+    await page.waitForFunction(()=>window.__lab.stats().phase==='idle',{timeout:15000});
+  }
+  const baseline=await page.evaluate(()=>window.__lab.stats());
+  for(let i=0;i<36;i++){
+    await page.locator(`[data-spell="${['fire','lightning','fusion'][i%3]}"]`).click();
+    await page.locator('#cast').click();
+  }
+  await page.locator('#quality').selectOption('high');
+  await page.locator('#quality').selectOption('mobile');
+  await page.waitForFunction(()=>window.__lab.stats().phase==='idle',{timeout:15000});
+  await page.waitForTimeout(500);
+  const after=await page.evaluate(()=>window.__lab.stats());
+  assert.equal(after.systems,0);
+  assert.equal(after.batches,baseline.batches);
+  assert.ok(after.geometries<=baseline.geometries+2,`geometries ${baseline.geometries} → ${after.geometries}`);
+  assert.ok(after.textures<=baseline.textures+2,`textures ${baseline.textures} → ${after.textures}`);
+  await page.locator('#reset').click();
+  await page.locator('#speed').click();
+  assert.equal(await page.locator('#speed').getAttribute('aria-pressed'),'true');
+  await page.locator('#speed').click();
+  await page.screenshot({path:'artifacts/desktop.png'});
+  const mobile=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true});
+  const phone=await mobile.newPage();
+  phone.on('pageerror',e=>errors.push(e.message));
+  await phone.goto(base);await phone.waitForFunction(()=>window.__lab?.stats().ready);
+  assert.equal(await phone.locator('#quality').inputValue(),'mobile');
+  for(const size of [{width:390,height:844},{width:844,height:390},{width:320,height:568}]){
+    await phone.setViewportSize(size);await phone.waitForTimeout(400);
+    assert.ok(await phone.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'no horizontal overflow');
+    const box=await phone.locator('#cast').boundingBox();
+    assert.ok(box&&box.height>=44&&box.y>=0&&box.y+box.height<=size.height,'Cast touch target stays inside viewport');
+    await phone.locator('[data-spell="fusion"]').tap();await phone.locator('#cast').tap();
+    await phone.waitForFunction(()=>window.__lab.stats().time>=1.95);
+    await phone.screenshot({path:`artifacts/mobile-${size.width}.png`});
+  }
+  await phone.setViewportSize({width:390,height:844});
+  const beforeCamera=await phone.evaluate(()=>window.__lab.stats().camera);
+  const cdp=await mobile.newCDPSession(phone);
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:150,y:280}]});
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:235,y:300}]});
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+  await phone.waitForTimeout(500);
+  const movedCamera=await phone.evaluate(()=>window.__lab.stats().camera);
+  assert.notDeepEqual(movedCamera,beforeCamera,'touch drag orbits the camera');
+  await phone.locator('#reset').tap();await phone.waitForTimeout(400);
+  const resetCamera=await phone.evaluate(()=>window.__lab.stats().camera);
+  assert.ok(Math.abs(resetCamera[0]-10.8)<.02,'camera reset returns home');
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:135,y:290,id:1},{x:245,y:290,id:2}]});
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:100,y:290,id:1},{x:280,y:290,id:2}]});
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+  await phone.waitForTimeout(300);
+  const zoomCamera=await phone.evaluate(()=>window.__lab.stats().camera);
+  assert.ok(Math.hypot(...zoomCamera)<Math.hypot(...resetCamera),'pinch zoom changes camera distance');
+  assert.equal(await phone.evaluate(()=>scrollY),0,'orbit and pinch do not scroll the page');
+  await phone.locator('#cast').tap();
+  assert.notEqual((await phone.evaluate(()=>window.__lab.stats())).phase,'idle','first tap after pinch casts');
+  assert.equal(errors.length,0,errors.join('\n'));
+  assert.ok(responses.length>0&&responses.every(r=>r.status===200),'all application scripts / styles load');
+  await phone.evaluate(()=>document.querySelector('#viewport canvas').getContext('webgl2').getExtension('WEBGL_lose_context').loseContext());
+  await phone.locator('#error').waitFor({state:'visible'});
+  assert.match(await phone.locator('#error-message').textContent(),/graphics connection/);
+  const unsupported=await browser.newPage();
+  await unsupported.addInitScript(()=>{const original=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){return type==='webgl2'||type==='webgl'?null:original.call(this,type,...args);};});
+  await unsupported.goto(base);
+  await unsupported.locator('#error').waitFor({state:'visible'});
+  assert.match(await unsupported.locator('#error-message').textContent(),/WebGL 2/);
+  const result={url:base,status:'PASS',browser:await browser.version(),gpu,spellSamples:samples,baseline,after,assets:responses,errors};
+  await writeFile('artifacts/browser-report.json',JSON.stringify(result,null,2));
+  console.log(JSON.stringify(result,null,2));
+} finally {await browser.close();}
