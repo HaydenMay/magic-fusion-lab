@@ -2,6 +2,8 @@
 
 An interactive Three.js + Three.quarks spell-weaving experiment. A small suspended obsidian observatory hosts three finite spell events, with procedural artwork and no game systems.
 
+**[Open the laboratory](https://haydenmay.github.io/magic-fusion-lab/)** · [Source repository](https://github.com/HaydenMay/magic-fusion-lab) · [Validation report](docs/validation.md)
+
 ## The experiments
 
 - **Fire / Pyroclasm:** a turbulent molten seed, curling flame wake, ember burst, fire crown and expanding ground rings.

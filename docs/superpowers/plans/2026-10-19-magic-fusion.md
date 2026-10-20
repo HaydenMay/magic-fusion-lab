@@ -32,33 +32,33 @@
 **Files:** `src/main.ts`, `src/style.css`, `src/scene.ts`, `src/playback.ts`, `tests/playback.test.ts`, `index.html`.
 **Interfaces:** `Playback.cast(id)`, `Playback.update(dt)`, `Playback.clear()`; scene exposes renderer, scene, camera, controls, resize and quality setter. Playback emits normalized phase progress and disposes a replaced or finished effect.
 
-- [ ] Write tests for charge / release / impact / decay boundaries and exactly-once cleanup on replay / finish.
-- [ ] Run `npm test`; expected: missing behavior fails before implementation.
-- [ ] Implement playback, scene and responsive UI with an elevated camera, engraved platform and safe error state.
-- [ ] Run `npm test` and `npm run build`; expected: all pass.
-- [ ] Run local preview and inspect desktop plus portrait / landscape controls.
-- [ ] Commit scene and playback.
+- [x] Write tests for charge / release / impact / decay boundaries and exactly-once cleanup on replay / finish.
+- [x] Run `npm test`; expected: missing behavior fails before implementation.
+- [x] Implement playback, scene and responsive UI with an elevated camera, engraved platform and safe error state.
+- [x] Run `npm test` and `npm run build`; expected: all pass.
+- [x] Run local preview and inspect desktop plus portrait / landscape controls.
+- [x] Commit scene and playback.
 
 ### Task 2: Three polished effects
 
 **Files:** `src/particles.ts`, `src/materials.ts`, `src/spells.ts`, `scripts/browser-check.mjs`.
 **Interfaces:** `createSpell(scene, batch, id, quality)` returns `{ update(time, dt), dispose() }` consumed by Playback. Particle kits expose move, stop, update and dispose; finite emitters are removed from the batch and their geometry / material / textures disposed or shared intentionally.
 
-- [ ] Add a browser acceptance check for all three visible spells, replay and bounded systems, plus mobile layout / quality / reset interactions.
-- [ ] Run before spell implementation; expected: unavailable effects fail.
-- [ ] Implement Fire first, inspect rendered flight and impact; then Lightning, then Fusion with a braided helix and nova.
-- [ ] Iterate on observed frames, silhouette, environmental lighting and phase timing.
-- [ ] Run `npm test`, `npm run build`, browser checks; expected: no runtime/shader errors, distinct screenshots, resources return to baseline.
-- [ ] Commit effects and verification script.
+- [x] Add a browser acceptance check for all three visible spells, replay and bounded systems, plus mobile layout / quality / reset interactions.
+- [x] Run before spell implementation; expected: unavailable effects fail.
+- [x] Implement Fire first, inspect rendered flight and impact; then Lightning, then Fusion with a braided helix and nova.
+- [x] Iterate on observed frames, silhouette, environmental lighting and phase timing.
+- [x] Run `npm test`, `npm run build`, browser checks; expected: no runtime/shader errors, distinct screenshots, resources return to baseline.
+- [x] Commit effects and verification script.
 
 ### Task 3: Public deployment and handoff
 
 **Files:** `.github/workflows/deploy.yml`, `README.md`, `docs/validation.md`.
 **Interfaces:** GitHub Pages workflow consumes `npm run build` output in `dist`, publishes with the Pages API, returns actual URL.
 
-- [ ] Add reproducible Actions workflow and usage / deployment documentation.
-- [ ] Run production preview under the real base path and all checks; expected: assets and interactions succeed.
-- [ ] Request one independent code review, resolve important findings, and rerun affected checks.
-- [ ] Create a fresh public repo, push, enable Pages and deploy; expected: successful workflow.
-- [ ] Verify the actual returned HTTPS URL, loaded assets and deployed interactions.
-- [ ] Record PASS / FAIL / NOT TESTED, measured browser FPS, visual inspection method and actual device limitations; deliver links and iPhone instructions.
+- [x] Add reproducible Actions workflow and usage / deployment documentation.
+- [x] Run production preview under the real base path and all checks; expected: assets and interactions succeed.
+- [x] Request one independent code review, resolve important findings, and rerun affected checks.
+- [x] Create a fresh public repo, push, enable Pages and deploy; expected: successful workflow.
+- [x] Verify the actual returned HTTPS URL, loaded assets and deployed interactions.
+- [x] Record PASS / FAIL / NOT TESTED, measured browser FPS, visual inspection method and actual device limitations; deliver links and iPhone instructions.
