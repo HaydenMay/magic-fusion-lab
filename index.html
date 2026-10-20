@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#080e12" />
+    <meta name="description" content="An interactive spell-weaving experiment. Shape fire, command lightning, and discover what happens when they become one." />
+    <title>Magic Fusion Laboratory — An elemental experiment</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23080e12'/%3E%3Cpath d='M32 7 52 32 32 57 12 32Z' fill='none' stroke='%23d3b57f' stroke-width='2'/%3E%3Cpath d='m35 17-13 18h11l-4 14 14-21H32Z' fill='%23d3b57f'/%3E%3C/svg%3E" />
+  </head>
+  <body>
+    <div id="app">
+      <div id="viewport" aria-label="Interactive 3D spell laboratory. Drag to orbit; pinch to zoom."></div>
+      <div class="vignette" aria-hidden="true"></div>
+      <header class="header">
+        <div class="brand"><span class="brand-seal" aria-hidden="true">✧</span><div><h1>Magic Fusion <em>Laboratory</em></h1><p>AN ELEMENTAL EXPERIMENT</p></div></div>
+        <div class="telemetry"><span class="live-dot"></span><span id="fps">— FPS</span><span class="separator"></span><label class="quality-label" for="quality">QUALITY</label><select id="quality" aria-label="Rendering quality"><option value="mobile">Mobile</option><option value="high">High</option></select></div>
+      </header>
+      <div class="experiment-label" aria-hidden="true"><span>FIELD NOTES</span><i></i> VOL. 001 / SPELL WEAVING</div>
+      <div class="scene-tag" id="origin-tag" aria-hidden="true">01 <span>ORIGIN</span></div>
+      <div class="scene-tag" id="target-tag" aria-hidden="true">02 <span>REACTOR</span></div>
+      <aside class="tools" aria-label="Scene controls">
+        <button id="reset" aria-label="Reset camera" title="Reset camera"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M5 9a7.5 7.5 0 1 1-.3 5M5 4v5h5"/></svg><span>Reset view</span></button>
+        <button id="speed" aria-pressed="false" aria-label="Toggle slow motion"><span class="speed-icon">½</span><span>Slow motion</span></button>
+      </aside>
+      <footer class="bottom">
+        <section class="spell-info" aria-label="Selected spell">
+          <div class="eyebrow"><span id="spell-index">EXPERIMENT 01</span><span class="rule"></span><span id="spell-type">THERMAL</span></div>
+          <h2 id="spell-name">Pyroclasm</h2>
+          <p id="spell-description">A molten heart. A trail of embers. A beautiful collapse.</p>
+          <div class="gesture-hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="m7 10 5-5 5 5M12 5v14M7 15l5 4 5-4"/></svg>DRAG TO ORBIT <span>·</span> PINCH TO ZOOM</div>
+        </section>
+        <section class="dock" aria-label="Spell controls">
+          <div class="dock-heading"><span>CHOOSE YOUR ELEMENT</span><span id="phase" role="status" aria-live="polite">READY TO CAST</span></div>
+          <div class="spell-options" role="group" aria-label="Select spell">
+            <button class="spell active" data-spell="fire" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M13 3c1 6-5 6-3 11 2-1 3-3 3-3 4 3 4 9-1 10-6 1-10-6-6-11 0 3 1 4 2 4-1-5 5-7 5-11Z"/></svg><span>Fire</span><small>01</small></button>
+            <button class="spell" data-spell="lightning" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="m14 2-9 12h7l-2 8 9-13h-7Z"/></svg><span>Lightning</span><small>02</small></button>
+            <button class="spell" data-spell="fusion" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><ellipse cx="12" cy="12" rx="4" ry="10" transform="rotate(45 12 12)"/><ellipse cx="12" cy="12" rx="4" ry="10" transform="rotate(-45 12 12)"/><circle cx="12" cy="12" r="2"/></svg><span>Fusion</span><small>03</small></button>
+          </div>
+          <button id="cast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m12 3 8 9-8 9-8-9Z"/><path d="M8 12h8m-4-4v8"/></svg><span id="cast-label">Cast spell</span><span class="cast-arrow">↗</span></button>
+          <div class="cast-progress" aria-hidden="true"><i id="progress"></i></div>
+          <p class="dock-footnote">THREE.JS <span>×</span> THREE.QUARKS <b>REALTIME VFX</b></p>
+        </section>
+      </footer>
+      <div id="loading"><span class="loading-sigil">✧</span><p>Awakening the laboratory…</p></div>
+      <section id="error" hidden role="alert"><div><span>✧</span><h2>The laboratory could not awaken.</h2><p id="error-message"></p><button id="reload">Try again</button></div></section>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
